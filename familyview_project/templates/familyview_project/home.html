@@ -1,0 +1,8 @@
+{% extends "familyview_project/base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="text-center">
+    <h1>Welcome to FamilyView</h1>
+    <p>Please <a href="{% url 'login_user' %}">Login</a> or <a href="{% url 'register_parent' %}">Register</a>.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "familyview_project/base.html" %}
+{% block title %}Create Child Account{% endblock %}
+{% block content %}
+<h1>Create Child Account</h1>
+<form method="post" class="form-group">
+    {% csrf_token %}
+    <input type="text" class="form-control mb-2" name="child_username" placeholder="Child Username" required>
+    <input type="password" class="form-control mb-2" name="child_password" placeholder="Password" required>
+    <select class="form-select mb-2" name="max_age_rating">
+        <option value="U">U</option>
+        <option value="PG">PG</option>
+        <option value="12">12</option>
+    </select>
+    <button type="submit" class="btn btn-primary w-100">Create Child Account</button>
+</form>
+{% endblock %}

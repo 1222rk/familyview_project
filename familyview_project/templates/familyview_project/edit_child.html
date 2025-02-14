@@ -1,0 +1,15 @@
+{% extends "familyview_project/base.html" %}
+{% block title %}Edit Child Account{% endblock %}
+{% block content %}
+<h1>Edit Child Account: {{ child_user.username }}</h1>
+<form method="post" class="form-group">
+    {% csrf_token %}
+    <label for="max_age_rating">Maximum Age Rating:</label>
+    <select class="form-select mb-2" name="max_age_rating">
+        <option value="U" {% if current_rating == "U" %}selected{% endif %}>U</option>
+        <option value="PG" {% if current_rating == "PG" %}selected{% endif %}>PG</option>
+        <option value="12" {% if current_rating == "12" %}selected{% endif %}>12</option>
+    </select>
+    <button type="submit" class="btn btn-primary w-100">Update</button>
+</form>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "familyview_project/base.html" %}
+{% block title %}Your Watchlist{% endblock %}
+{% block content %}
+<h1>Your Watchlist</h1>
+<ul class="list-group">
+    {% for item in items %}
+    <li class="list-group-item">{{ item.movie.title }}</li>
+    {% empty %}
+    <p class="text-muted text-center">Your watchlist is empty.</p>
+    {% endfor %}
+</ul>
+{% endblock %}

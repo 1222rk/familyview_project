@@ -1,0 +1,16 @@
+{% extends "familyview_project/base.html" %}
+{% block title %}Recommendations{% endblock %}
+{% block content %}
+<h1>For You - Recommendations</h1>
+{% if movies %}
+<ul class="list-group">
+    {% for movie in movies %}
+    <li class="list-group-item">
+        <strong>{{ movie.title }}</strong> ({{ movie.age_rating }}) - {{ movie.genre }}
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-muted text-center">No recommendations found. Add more movies to your watchlist to get recommendations!</p>
+{% endif %}
+{% endblock %}

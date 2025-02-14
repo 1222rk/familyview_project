@@ -1,0 +1,36 @@
+{% extends "familyview_project/base.html" %}
+{% block title %}Diary{% endblock %}
+{% block content %}
+<h1>Diary</h1>
+<form method="post" class="row g-3 mb-4">
+    {% csrf_token %}
+    <div class="col-md-4">
+        <select class="form-select" name="movie_id">
+            {% for movie in movies %}
+                <option value="{{ movie.id }}">{{ movie.title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-4">
+        <input type="date" class="form-control" name="watched_on" required>
+    </div>
+    <div class="col-md-2 form-check">
+        <input type="checkbox" class="form-check-input" name="thumbs_up" id="thumbsUp">
+        <label class="form-check-label" for="thumbsUp">Thumbs Up</label>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Log Movie</button>
+    </div>
+</form>
+<h2>Your Diary</h2>
+<ul class="list-group">
+    {% for entry in entries %}
+    <li class="list-group-item">
+        {{ entry.movie.title }} watched on {{ entry.watched_on }} -
+        {% if entry.thumbs_up %}👍{% else %}👎{% endif %}
+    </li>
+    {% empty %}
+    <p class="text-muted text-center">No diary entries yet.</p>
+    {% endfor %}
+</ul>
+{% endblock %}
