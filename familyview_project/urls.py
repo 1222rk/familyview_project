@@ -30,4 +30,3 @@ urlpatterns = [
     path('recommendations/', views.recommendations, name='recommendations'),
     path('diary/', views.diary, name='diary'),
 ]
-

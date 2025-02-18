@@ -1,0 +1,11 @@
+/* Global Styles */
+body {
+    font-family: 'Luckiest Guy', cursive !important;
+}
+
+/* Container */
+.container {
+    margin-top: 20px;
+}
+
+/* Additional custom styles can be added here */

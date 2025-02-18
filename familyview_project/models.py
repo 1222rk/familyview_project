@@ -1,5 +1,3 @@
-# familyview_project/models.py
-
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -18,9 +16,10 @@ class ChildAccount(models.Model):
     def __str__(self):
         return f"Child: {self.user.username} (Max Age: {self.max_age_rating})"
 
+
 class Movie(models.Model):
     """
-    Movie model stores all films with genre and age rating.
+    Movie model stores all films with genre, age rating, and release date.
     """
     title = models.CharField(max_length=255)
     genre = models.CharField(max_length=50)
@@ -28,9 +27,11 @@ class Movie(models.Model):
         max_length=5,
         choices=[("U", "U"), ("PG", "PG"), ("12", "12")]
     )
+    release_date = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
         return f"{self.title} ({self.age_rating}) - {self.genre}"
+
 
 class WatchlistItem(models.Model):
     """
@@ -45,6 +46,7 @@ class WatchlistItem(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.movie.title}"
+
 
 class DiaryEntry(models.Model):
     """

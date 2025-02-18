@@ -7,6 +7,9 @@
     {% for movie in movies %}
     <li class="list-group-item">
         <strong>{{ movie.title }}</strong> ({{ movie.age_rating }}) - {{ movie.genre }}
+        {% if movie.release_date %}
+            - Released: {{ movie.release_date }}
+        {% endif %}
     </li>
     {% endfor %}
 </ul>
