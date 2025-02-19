@@ -2,30 +2,46 @@
 {% block title %}Movies{% endblock %}
 {% block content %}
 <h1>Movie List</h1>
+
+<!-- Search, Filter & Sort Form -->
 <form method="get" class="row g-3 mb-4">
-    <div class="col-md-4">
-        <input type="text" class="form-control" name="q" placeholder="Search by title" value="{{ request.GET.q }}">
-    </div>
+    <!-- Search Field -->
     <div class="col-md-3">
+        <input type="text" class="form-control" name="q" placeholder="Search by title" value="{{ query }}">
+    </div>
+    <!-- Genre Dropdown -->
+    <div class="col-md-2">
         <select class="form-select" name="genre">
             <option value="">All Genres</option>
             {% for g in genres %}
-                <option value="{{ g }}" {% if request.GET.genre == g %}selected{% endif %}>{{ g }}</option>
+                <option value="{{ g }}" {% if selected_genre == g %}selected{% endif %}>{{ g }}</option>
             {% endfor %}
         </select>
     </div>
-    <div class="col-md-3">
+    <!-- Age Rating Dropdown -->
+    <div class="col-md-2">
         <select class="form-select" name="age_rating">
             <option value="">All Ages</option>
-            <option value="U" {% if request.GET.age_rating == "U" %}selected{% endif %}>U</option>
-            <option value="PG" {% if request.GET.age_rating == "PG" %}selected{% endif %}>PG</option>
-            <option value="12" {% if request.GET.age_rating == "12" %}selected{% endif %}>12</option>
+            <option value="U" {% if selected_age == "U" %}selected{% endif %}>U</option>
+            <option value="PG" {% if selected_age == "PG" %}selected{% endif %}>PG</option>
+            <option value="12" {% if selected_age == "12" %}selected{% endif %}>12</option>
         </select>
     </div>
+    <!-- Sort Dropdown -->
     <div class="col-md-2">
+        <select class="form-select" name="sort">
+            <option value="">Default</option>
+            <option value="alphabetical" {% if sort == 'alphabetical' %}selected{% endif %}>Alphabetical</option>
+            <option value="release" {% if sort == 'release' %}selected{% endif %}>Release Date</option>
+        </select>
+    </div>
+    <!-- Submit Button -->
+    <div class="col-md-3">
         <button type="submit" class="btn btn-primary w-100">Search</button>
     </div>
 </form>
+
+<!-- Movie List -->
 <ul class="list-group">
     {% for movie in movies %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -41,4 +57,27 @@
     <p class="text-muted text-center">No movies found.</p>
     {% endfor %}
 </ul>
+
+<!-- Pagination Controls -->
+<div class="mt-4">
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&genre={{ selected_genre }}&age_rating={{ selected_age }}&sort={{ sort }}">Previous</a>
+            </li>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}&q={{ query }}&genre={{ selected_genre }}&age_rating={{ selected_age }}&sort={{ sort }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&genre={{ selected_genre }}&age_rating={{ selected_age }}&sort={{ sort }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
 {% endblock %}

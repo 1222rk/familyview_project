@@ -1,0 +1,36 @@
+{% extends "familyview_project/base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<h1>Admin Dashboard</h1>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Account Type</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>
+                {% if u.is_superuser %}
+                    Admin
+                {% elif u.child_profile %}
+                    Child
+                {% else %}
+                    Parent
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'edit_user' u.id %}" class="btn btn-primary btn-sm">Edit</a>
+                <a href="{% url 'remove_user' u.id %}" class="btn btn-danger btn-sm">Remove</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

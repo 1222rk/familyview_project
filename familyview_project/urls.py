@@ -29,4 +29,15 @@ urlpatterns = [
     # Recommendations & diary
     path('recommendations/', views.recommendations, name='recommendations'),
     path('diary/', views.diary, name='diary'),
+
+    # Removal links
+    path('remove_from_watchlist/<int:movie_id>/', views.remove_from_watchlist, name='remove_from_watchlist'),
+    path('remove_diary_entry/<int:entry_id>/', views.remove_diary_entry, name='remove_diary_entry'),
+
+
+    # Basic admin pages
+    path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('edit_user/<int:user_id>/', views.edit_user, name='edit_user'),
+    path('remove_user/<int:user_id>/', views.remove_user, name='remove_user'),
+
 ]

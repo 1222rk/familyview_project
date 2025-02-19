@@ -1,19 +1,26 @@
 {% extends "familyview_project/base.html" %}
-{% block title %}Recommendations{% endblock %}
+{% block title %}For You - Recommendations{% endblock %}
 {% block content %}
 <h1>For You - Recommendations</h1>
-{% if movies %}
-<ul class="list-group">
-    {% for movie in movies %}
-    <li class="list-group-item">
-        <strong>{{ movie.title }}</strong> ({{ movie.age_rating }}) - {{ movie.genre }}
-        {% if movie.release_date %}
-            - Released: {{ movie.release_date }}
-        {% endif %}
-    </li>
-    {% endfor %}
-</ul>
+{% if recommendations %}
+  <ul class="list-group">
+      {% for rec in recommendations %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                  <strong>{{ rec.movie.title }}</strong> ({{ rec.movie.age_rating }}) - {{ rec.movie.genre }}
+                  {% if rec.movie.release_date %}
+                      - Released: {{ rec.movie.release_date }}
+                  {% endif %}
+                  <br>
+                  <small class="text-muted">({{ rec.reason }})</small>
+              </div>
+              <div>
+                  <a href="{% url 'add_to_watchlist' rec.movie.id %}" class="btn btn-success btn-sm">Add to Watchlist</a>
+              </div>
+          </li>
+      {% endfor %}
+  </ul>
 {% else %}
-<p class="text-muted text-center">No recommendations found. Add more movies to your watchlist to get recommendations!</p>
+  <p class="text-muted text-center">No recommendations found. Add more movies to your watchlist or diary to get recommendations!</p>
 {% endif %}
 {% endblock %}

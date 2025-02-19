@@ -25,13 +25,17 @@
 <h2>Your Diary</h2>
 <ul class="list-group">
     {% for entry in entries %}
-    <li class="list-group-item">
-        {{ entry.movie.title }} watched on {{ entry.watched_on }} -
-        {% if entry.thumbs_up %}👍{% else %}👎{% endif %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>
+            {{ entry.movie.title }} watched on {{ entry.watched_on }} -
+            {% if entry.thumbs_up %}👍{% else %}👎{% endif %}
+        </span>
+        <a href="{% url 'remove_diary_entry' entry.id %}" class="btn btn-danger btn-sm">Remove</a>
     </li>
     {% empty %}
     <p class="text-muted text-center">No diary entries yet.</p>
     {% endfor %}
 </ul>
 {% endblock %}
+
 

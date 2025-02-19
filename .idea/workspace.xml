@@ -5,17 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d57efa54-6430-4a7d-bcde-01f196faf094" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/familyview_project/data/fyp_dataset.xlsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/familyview_project/management/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/familyview_project/management/commands/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/familyview_project/management/commands/populate_movies.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/familyview_project/static/css/styles.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/familyview_project/templates/familyview_project/admin_dashboard.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/familyview_project/templates/familyview_project/edit_user.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/db.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/familyview_project/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/familyview_project/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/familyview_project/data/fyp_dataset.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/familyview_project/data/fyp_dataset.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/familyview_project/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/familyview_project/static/css/styles.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/familyview_project/templates/familyview_project/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/familyview_project/templates/familyview_project/base.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/familyview_project/templates/familyview_project/diary.html" beforeDir="false" afterPath="$PROJECT_DIR$/familyview_project/templates/familyview_project/diary.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/familyview_project/templates/familyview_project/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/familyview_project/templates/familyview_project/home.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/familyview_project/templates/familyview_project/movie_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/familyview_project/templates/familyview_project/movie_list.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/familyview_project/templates/familyview_project/recommendations.html" beforeDir="false" afterPath="$PROJECT_DIR$/familyview_project/templates/familyview_project/recommendations.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/familyview_project/templates/familyview_project/watchlist.html" beforeDir="false" afterPath="$PROJECT_DIR$/familyview_project/templates/familyview_project/watchlist.html" afterDir="false" />
@@ -30,9 +27,9 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="HTML File" />
         <option value="CSS File" />
         <option value="Python Script" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -48,23 +45,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "JavaScript Debug.home.html.executor": "Run",
-    "Python.manage.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "D:/w1891238_fyp/familyview_project/familyview_project/data",
-    "list.type.of.created.stylesheet": "CSS",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;JavaScript Debug.home.html.executor&quot;: &quot;Run&quot;,
+    &quot;Python.manage.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/w1891238_fyp/familyview_project/familyview_project/data&quot;,
+    &quot;list.type.of.created.stylesheet&quot;: &quot;CSS&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\w1891238_fyp\familyview_project\familyview_project\data" />
@@ -93,7 +90,8 @@
       <updated>1739537866212</updated>
       <workItem from="1739537867633" duration="5288000" />
       <workItem from="1739714231482" duration="4473000" />
-      <workItem from="1739828043471" duration="8410000" />
+      <workItem from="1739828043471" duration="9598000" />
+      <workItem from="1739913002698" duration="10680000" />
     </task>
     <servers />
   </component>
