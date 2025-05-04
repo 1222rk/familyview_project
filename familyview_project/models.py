@@ -2,11 +2,18 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class ChildAccount(models.Model):
-    """
-    A child account linked to a standard Django User.
-    It has a max_age_rating that restricts accessible movies.
-    """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="child_profile")
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="child_profile"
+    )
+    parent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="children",
+        null=True,    # temporarily allow blank until you back-fill existing data
+        blank=True,
+    )
     max_age_rating = models.CharField(
         max_length=5,
         choices=[("U", "U"), ("PG", "PG"), ("12", "12")],
@@ -14,7 +21,7 @@ class ChildAccount(models.Model):
     )
 
     def __str__(self):
-        return f"Child: {self.user.username} (Max Age: {self.max_age_rating})"
+        return f"Child {self.user.username} (Max: {self.max_age_rating})"
 
 
 class Movie(models.Model):
@@ -28,6 +35,7 @@ class Movie(models.Model):
         choices=[("U", "U"), ("PG", "PG"), ("12", "12")]
     )
     release_date = models.CharField(max_length=20, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.title} ({self.age_rating}) - {self.genre}"
@@ -60,3 +68,18 @@ class DiaryEntry(models.Model):
     def __str__(self):
         status = "👍" if self.thumbs_up else "👎"
         return f"{self.user.username} watched {self.movie.title} on {self.watched_on} {status}"
+
+
+class AdminRequest(models.Model):
+    REQUEST_TYPES = [
+        ('ADD_MOVIE',  'Add Movie'),
+        ('AGE_CHANGE', 'Change Child Age'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    request_type = models.CharField(max_length=20, choices=REQUEST_TYPES)
+    details = models.TextField(help_text="Describe what you'd like us to do.")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} – {self.get_request_type_display()} @ {self.created_at:%Y-%m-%d %H:%M}"

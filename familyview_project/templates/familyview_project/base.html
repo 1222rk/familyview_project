@@ -1,57 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>{% block title %}FamilyView{% endblock %}</title>
-    {% load static %}
-    <!-- Optional custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <!-- Google Fonts: Luckiest Guy for a cartoonish look -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
-    <!-- Bootswatch Superhero theme -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/superhero/bootstrap.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>{% block title %}FamilyView{% endblock %}</title>
+  {% load static %}
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+  <!-- Bootswatch Superhero Theme -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/superhero/bootstrap.min.css">
+
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body { display: flex; flex-direction: column; font-family: sans-serif; }
+    h1, .navbar-brand { font-family: 'Luckiest Guy', cursive; }
+    main { flex: 1 0 auto; }
+    footer { flex-shrink: 0; }
+
+    /* Text-size slider in bottom-right corner */
+    #textSizeControl {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background: rgba(0,0,0,0.75);
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    #textSizeControl label { color: #fff; margin: 0; font-size: 0.9rem; }
+    #textSizeControl input[type="range"] { width: 120px; }
+  </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container-fluid">
-        <!-- Conditional link: if authenticated, logo goes to movie_list; else home -->
-        <a class="navbar-brand" href="{% if user.is_authenticated %}{% url 'movie_list' %}{% else %}{% url 'home' %}{% endif %}">FamilyView</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav">
-            {% if user.is_authenticated %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'movie_list' %}">Movies</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'watchlist' %}">Watchlist</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'recommendations' %}">For You</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'diary' %}">Diary</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'create_child' %}">Create Child</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'logout_user' %}">Logout</a></li>
-            {% else %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'login_user' %}">Login</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'register_parent' %}">Register</a></li>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand"
+         href="{% if user.is_authenticated %}{% url 'movie_list' %}{% else %}{% url 'home' %}{% endif %}">
+        FamilyView
+      </a>
+      <button class="navbar-toggler" type="button"
+              data-bs-toggle="collapse" data-bs-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false"
+              aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+
+          {% if user.is_authenticated %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'movie_list' %}">Movies</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'watchlist' %}">Watchlist</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'recommendations' %}">For You</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'diary' %}">Diary</a></li>
+
+            <!-- My Children dropdown -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="kidsMenu" role="button"
+                 data-bs-toggle="dropdown" aria-expanded="false">
+                My Children
+              </a>
+              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="kidsMenu">
+                <!-- Create Child always first -->
+                <li>
+                  <a class="dropdown-item" href="{% url 'create_child' %}">
+                    + Create Child
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <!-- Then list existing children -->
+                {% for child in user.children.all %}
+                  <li>
+                    <a class="dropdown-item" href="{% url 'edit_child' child.id %}">
+                      {{ child.user.username }} (Max {{ child.max_age_rating }})
+                    </a>
+                  </li>
+                {% empty %}
+                  <li><span class="dropdown-item text-muted">No children yet</span></li>
+                {% endfor %}
+              </ul>
+            </li>
+
+            <li class="nav-item"><a class="nav-link" href="{% url 'submit_request' %}">Submit Request</a></li>
+            {% if user.is_superuser %}
+              <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">Admin Portal</a></li>
             {% endif %}
-            <!-- Always show Admin link to direct to Django admin portal -->
-            <li class="nav-item"><a class="nav-link" href="/admin/">Admin</a></li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+          {% else %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'login_user' %}">Login</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'register_parent' %}">Register</a></li>
+          {% endif %}
 
-    <div class="container mt-4">
-        {% if messages %}
-        <ul class="list-group mb-3">
-            {% for message in messages %}
-            <li class="list-group-item">{{ message }}</li>
-            {% endfor %}
         </ul>
+
+        {% if user.is_authenticated %}
+          <div class="d-flex ms-auto align-items-center">
+            <span class="navbar-text text-white me-3">
+              Welcome {{ user.username }}
+              {% if user.child_profile %}
+                (Child max: {{ user.child_profile.max_age_rating }})
+              {% endif %}
+            </span>
+            <a class="btn btn-outline-light btn-sm" href="{% url 'logout_user' %}">
+              Logout
+            </a>
+          </div>
         {% endif %}
-
-        {% block content %}{% endblock %}
+      </div>
     </div>
+  </nav>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Main Content -->
+  <main role="main" class="container mt-4">
+    {% if messages %}
+      <ul class="list-group mb-3">
+        {% for message in messages %}
+          <li class="list-group-item">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer (always at bottom) -->
+  <footer class="text-center py-3 bg-light">
+    <div class="container">
+      <p class="mb-0">&copy; {{ now.year }} FamilyView</p>
+    </div>
+  </footer>
+
+  <!-- Text Size Slider -->
+  <div id="textSizeControl">
+    <label for="fontSizeSlider">Text Size</label>
+    <input type="range" id="fontSizeSlider" min="75" max="150" value="100"
+           aria-label="Adjust text size">
+  </div>
+
+  <!-- Bootstrap JS + Slider Script -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const slider = document.getElementById('fontSizeSlider');
+    const saved = localStorage.getItem('fv-font-size');
+    if (saved) {
+      document.documentElement.style.fontSize = saved + '%';
+      slider.value = saved;
+    }
+    slider?.addEventListener('input', () => {
+      document.documentElement.style.fontSize = slider.value + '%';
+      localStorage.setItem('fv-font-size', slider.value);
+    });
+  </script>
 </body>
 </html>

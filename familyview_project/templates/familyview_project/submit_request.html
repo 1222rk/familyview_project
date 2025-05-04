@@ -1,0 +1,17 @@
+{% extends "familyview_project/base.html" %}
+{% block title %}Submit Request{% endblock %}
+{% block content %}
+  <h1>Submit a Request</h1>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      {{ form.request_type.label_tag }}
+      {{ form.request_type }}
+    </div>
+    <div class="mb-3">
+      {{ form.details.label_tag }}
+      {{ form.details }}
+    </div>
+    <button type="submit" class="btn btn-primary">Send to Admin</button>
+  </form>
+{% endblock %}

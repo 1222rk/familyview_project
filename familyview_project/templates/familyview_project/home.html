@@ -1,8 +1,22 @@
 {% extends "familyview_project/base.html" %}
 {% block title %}Home{% endblock %}
+
 {% block content %}
-<div class="text-center">
-    <h1>Welcome to FamilyView</h1>
-    <p>Please <a href="{% url 'login_user' %}">login</a> or <a href="{% url 'register_parent' %}">register</a> to continue.</p>
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <div class="card text-center shadow-sm">
+      <div class="card-body">
+        <h1 class="card-title mb-4">Welcome to FamilyView</h1>
+        <p class="card-text mb-4">Discover family-friendly movie picks and easily manage your watchlist and diary.</p>
+        {% if user.is_authenticated %}
+          <a href="{% url 'movie_list' %}" class="btn btn-primary me-2">Browse Movies</a>
+          <a href="{% url 'watchlist' %}" class="btn btn-secondary">Your Watchlist</a>
+        {% else %}
+          <a href="{% url 'login_user' %}" class="btn btn-primary me-2">Login</a>
+          <a href="{% url 'register_parent' %}" class="btn btn-secondary">Register</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

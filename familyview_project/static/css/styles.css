@@ -1,20 +1,46 @@
-/* Keep your global site font as cartoonish */
-body {
-    font-family: 'Luckiest Guy', cursive !important;
+/* Card lift & shadow on hover */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* Force labels, inputs, textareas, and selects to use Arial */
-label, input, textarea, select {
-    font-family: Arial, sans-serif !important;
+/* Button brighten slightly on hover */
+.btn {
+  transition: filter 0.2s ease;
+}
+.btn:hover {
+  filter: brightness(110%);
 }
 
-/* Also ensure placeholders are Arial if needed */
-::placeholder {
-    font-family: Arial, sans-serif !important;
+/* Nav-link underline on hover */
+.nav-link {
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+.nav-link:hover {
+  color: #f8f9fa;
+  text-decoration: underline;
+  text-decoration-color: #fff;
 }
 
-/* Container */
-.container {
-    margin-top: 20px;
+/* Pagination disabled link styling */
+.pagination .disabled .page-link {
+  pointer-events: none;
+  opacity: 0.6;
 }
 
+/* Make movie titles regular weight */
+.card .card-title,
+.list-group-item strong {
+  font-weight: normal !important;
+}
+
+/* Make recommendation carousel cards bigger */
+#recCarousel .carousel-item .card {
+  width: 24rem;     /* wider */
+  max-width: 90vw;  /* never exceed viewport width */
+  height: auto;     /* allow height to grow with content */
+  margin: 0 auto;   /* center within carousel */
+}

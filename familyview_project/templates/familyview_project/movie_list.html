@@ -1,83 +1,168 @@
 {% extends "familyview_project/base.html" %}
 {% block title %}Movies{% endblock %}
+
 {% block content %}
 <h1>Movie List</h1>
 
 <!-- Search, Filter & Sort Form -->
 <form method="get" class="row g-3 mb-4">
-    <!-- Search Field -->
-    <div class="col-md-3">
-        <input type="text" class="form-control" name="q" placeholder="Search by title" value="{{ query }}">
-    </div>
-    <!-- Genre Dropdown -->
-    <div class="col-md-2">
-        <select class="form-select" name="genre">
-            <option value="">All Genres</option>
-            {% for g in genres %}
-                <option value="{{ g }}" {% if selected_genre == g %}selected{% endif %}>{{ g }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <!-- Age Rating Dropdown -->
-    <div class="col-md-2">
-        <select class="form-select" name="age_rating">
-            <option value="">All Ages</option>
-            <option value="U" {% if selected_age == "U" %}selected{% endif %}>U</option>
-            <option value="PG" {% if selected_age == "PG" %}selected{% endif %}>PG</option>
-            <option value="12" {% if selected_age == "12" %}selected{% endif %}>12</option>
-        </select>
-    </div>
-    <!-- Sort Dropdown -->
-    <div class="col-md-2">
-        <select class="form-select" name="sort">
-            <option value="">Default</option>
-            <option value="alphabetical" {% if sort == 'alphabetical' %}selected{% endif %}>Alphabetical</option>
-            <option value="release" {% if sort == 'release' %}selected{% endif %}>Release Date</option>
-        </select>
-    </div>
-    <!-- Submit Button -->
-    <div class="col-md-3">
-        <button type="submit" class="btn btn-primary w-100">Search</button>
-    </div>
+  <div class="col-md-3">
+    <input type="text" class="form-control" name="q" placeholder="Search by title" value="{{ query }}">
+  </div>
+  <div class="col-md-2">
+    <select class="form-select" name="genre">
+      <option value="">All Genres</option>
+      {% for g in genres %}
+        <option value="{{ g }}" {% if selected_genre == g %}selected{% endif %}>{{ g }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select class="form-select" name="age_rating">
+      <option value="">All Ages</option>
+      <option value="U" {% if selected_age == "U" %}selected{% endif %}>U</option>
+      <option value="PG" {% if selected_age == "PG" %}selected{% endif %}>PG</option>
+      <option value="12" {% if selected_age == "12" %}selected{% endif %}>12</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select class="form-select" name="sort">
+      <option value="">Default</option>
+      <option value="alphabetical" {% if sort == 'alphabetical' %}selected{% endif %}>Alphabetical</option>
+      <option value="release" {% if sort == 'release' %}selected{% endif %}>Release Date</option>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <button type="submit" class="btn btn-primary w-100">Search</button>
+  </div>
 </form>
 
-<!-- Movie List -->
-<ul class="list-group">
-    {% for movie in movies %}
-    <li class="list-group-item d-flex justify-content-between align-items-center">
-        <span>
-            <strong>{{ movie.title }}</strong> ({{ movie.age_rating }}) - {{ movie.genre }}
-            {% if movie.release_date %}
-                - Released: {{ movie.release_date }}
-            {% endif %}
-        </span>
-        <a href="{% url 'add_to_watchlist' movie.id %}" class="btn btn-success btn-sm">Add to Watchlist</a>
-    </li>
-    {% empty %}
-    <p class="text-muted text-center">No movies found.</p>
-    {% endfor %}
-</ul>
+<!-- Card Grid: 2×2 per page -->
+<div class="row">
+  {% for movie in movies %}
+    <div class="col-12 col-sm-6 mb-4">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">{{ movie.title }}</h5>
+          <p class="card-text mb-1">
+            <small class="text-muted">{{ movie.genre }} &middot; {{ movie.age_rating }}</small>
+          </p>
+          {% if movie.release_date %}
+            <p class="card-text"><small class="text-muted">Released: {{ movie.release_date }}</small></p>
+          {% endif %}
+          <p class="card-text flex-grow-1">
+            {{ movie.description|truncatechars:100|default:"No description available." }}
+          </p>
+          <div class="mt-auto">
+            <a href="{% url 'add_to_watchlist' movie.id %}" class="btn btn-success btn-sm me-2">
+              Add to Watchlist
+            </a>
+            <button type="button"
+                    class="btn btn-info btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#descModal{{ movie.id }}">
+              View More
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<!-- Pagination Controls -->
-<div class="mt-4">
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&genre={{ selected_genre }}&age_rating={{ selected_age }}&sort={{ sort }}">Previous</a>
-            </li>
-            {% endif %}
-            {% for num in page_obj.paginator.page_range %}
-            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                <a class="page-link" href="?page={{ num }}&q={{ query }}&genre={{ selected_genre }}&age_rating={{ selected_age }}&sort={{ sort }}">{{ num }}</a>
-            </li>
-            {% endfor %}
-            {% if page_obj.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&genre={{ selected_genre }}&age_rating={{ selected_age }}&sort={{ sort }}">Next</a>
-            </li>
-            {% endif %}
-        </ul>
-    </nav>
+    <!-- Modal for Movie Description -->
+    <div class="modal fade" id="descModal{{ movie.id }}" tabindex="-1" aria-labelledby="descModalLabel{{ movie.id }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="descModalLabel{{ movie.id }}">{{ movie.title }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            {{ movie.description|default:"No description available." }}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-muted text-center">No movies found.</p>
+  {% endfor %}
 </div>
+
+<!-- Simplified Pagination with First/Prev/Current/Next/Last -->
+<nav aria-label="Page navigation">
+  <ul class="pagination justify-content-center">
+
+    {% if page_obj.number > 1 %}
+      <li class="page-item">
+        <a class="page-link"
+           href="?page=1&q={{ query }}&genre={{ selected_genre }}&age_rating={{ selected_age }}&sort={{ sort }}">
+          « First
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">« First</span></li>
+    {% endif %}
+
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link"
+           href="?page={{ page_obj.previous_page_number }}&q={{ query }}&genre={{ selected_genre }}&age_rating={{ selected_age }}&sort={{ sort }}">
+          ‹ Prev
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">‹ Prev</span></li>
+    {% endif %}
+
+    <li class="page-item disabled">
+      <span class="page-link">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </span>
+    </li>
+
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link"
+           href="?page={{ page_obj.next_page_number }}&q={{ query }}&genre={{ selected_genre }}&age_rating={{ selected_age }}&sort={{ sort }}">
+          Next ›
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Next ›</span></li>
+    {% endif %}
+
+    {% if page_obj.number < page_obj.paginator.num_pages %}
+      <li class="page-item">
+        <a class="page-link"
+           href="?page={{ page_obj.paginator.num_pages }}&q={{ query }}&genre={{ selected_genre }}&age_rating={{ selected_age }}&sort={{ sort }}">
+          Last »
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Last »</span></li>
+    {% endif %}
+
+  </ul>
+</nav>
+
+<!-- Jump to Page -->
+<form method="get" class="d-flex justify-content-center align-items-center mt-3">
+  <label for="jumpPage" class="me-2">Go to page:</label>
+  <input
+    type="number"
+    id="jumpPage"
+    name="page"
+    min="1"
+    max="{{ page_obj.paginator.num_pages }}"
+    class="form-control w-auto me-2"
+    placeholder="1–{{ page_obj.paginator.num_pages }}"
+    required>
+  <input type="hidden" name="q" value="{{ query }}">
+  <input type="hidden" name="genre" value="{{ selected_genre }}">
+  <input type="hidden" name="age_rating" value="{{ selected_age }}">
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <button type="submit" class="btn btn-outline-primary">Go</button>
+</form>
 {% endblock %}

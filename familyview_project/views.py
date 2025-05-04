@@ -1,46 +1,64 @@
+# familyview_project/views.py
+
+import re
+import random
 from datetime import datetime, date
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from collections import Counter
+
+from django.shortcuts            import render, redirect, get_object_or_404
+from django.contrib              import messages
+from django.contrib.auth        import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from collections import Counter
-from django.core.paginator import Paginator
+from django.core.paginator       import Paginator
 
-# Import your models
-from familyview_project.models import Movie, WatchlistItem, DiaryEntry, ChildAccount
+from .models import (
+    Movie,
+    WatchlistItem,
+    DiaryEntry,
+    ChildAccount,
+    AdminRequest
+)
+from .forms import AdminRequestForm
+
+
+def is_strong_password(password):
+    """
+    Returns True if password is at least 8 characters long
+    and contains at least one numeric digit.
+    """
+    return len(password) >= 8 and bool(re.search(r"\d", password))
 
 
 def home(request):
-    """Landing page. Redirect authenticated users to the movie list."""
+    """Landing page. Redirect authenticated users to movie list."""
     if request.user.is_authenticated:
         return redirect('movie_list')
     return render(request, 'familyview_project/home.html')
 
 
 def register_parent(request):
+    """Allow a new parent to sign up, enforcing our password policy."""
     if request.method == 'POST':
         username = request.POST.get('username', '')
-        email = request.POST.get('email', '')
+        email    = request.POST.get('email', '')
         password = request.POST.get('password', '')
 
-        # Check if the username already exists
+        # 1. Check username uniqueness
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already taken, please choose a different one.")
             return redirect('register_parent')
 
-        # Check password length (>= 8 characters)
-        if len(password) < 8:
-            messages.error(request, 'Password must be at least 8 characters long.')
+        # 2. Enforce password policy
+        if not is_strong_password(password):
+            messages.error(
+                request,
+                "Password must be at least 8 characters long and include at least one number."
+            )
             return redirect('register_parent')
 
-        # Check if password contains at least one digit
-        if not any(char.isdigit() for char in password):
-            messages.error(request, 'Password must contain at least one number.')
-            return redirect('register_parent')
-
-        # If all checks pass, create the user
-        user = User.objects.create_user(username=username, email=email, password=password)
+        # 3. Create the user
+        User.objects.create_user(username=username, email=email, password=password)
         messages.success(request, 'Parent account created successfully! Please log in.')
         return redirect('login_user')
 
@@ -48,17 +66,18 @@ def register_parent(request):
 
 
 def login_user(request):
-    """Log in an existing user."""
+    """Authenticate and log in an existing user."""
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(
+            request,
+            username=request.POST['username'],
+            password=request.POST['password']
+        )
         if user:
             login(request, user)
             messages.success(request, f'Welcome, {user.username}!')
             return redirect('movie_list')
-        else:
-            messages.error(request, 'Invalid credentials.')
+        messages.error(request, 'Invalid credentials.')
     return render(request, 'familyview_project/login.html')
 
 
@@ -70,15 +89,14 @@ def logout_user(request):
 
 
 def movie_list(request):
+    """Display the movie list with search, filter, sort, pagination."""
     query = request.GET.get('q', '')
     selected_genre = request.GET.get('genre', '')
     age_rating = request.GET.get('age_rating', '')
-    sort_option = request.GET.get('sort', '')  # Parameter for sorting
+    sort_option = request.GET.get('sort', '')
 
-    # Retrieve all movies
+    # Retrieve and filter
     movies = Movie.objects.all()
-
-    # Apply search and filter criteria
     if query:
         movies = movies.filter(title__icontains=query)
     if selected_genre:
@@ -86,40 +104,39 @@ def movie_list(request):
     if age_rating:
         movies = movies.filter(age_rating=age_rating)
 
-    # If a child is logged in, restrict movies based on the child's max_age_rating
+    # Child age restriction
     if request.user.is_authenticated and hasattr(request.user, 'child_profile'):
         max_rating = request.user.child_profile.max_age_rating
-        if max_rating == "U":
-            movies = movies.filter(age_rating__in=["U"])
-        elif max_rating == "PG":
-            movies = movies.filter(age_rating__in=["U", "PG"])
-        elif max_rating == "12":
-            movies = movies.filter(age_rating__in=["U", "PG", "12"])
+        allowed = (
+            ["U"] if max_rating == "U" else
+            ["U", "PG"] if max_rating == "PG" else
+            ["U", "PG", "12"]
+        )
+        movies = movies.filter(age_rating__in=allowed)
 
-    # Apply sorting
+    # Sorting
     if sort_option == 'alphabetical':
         movies = movies.order_by('title')
     elif sort_option == 'release':
         movies = movies.order_by('release_date')
 
-    # Retrieve all distinct genres and sort them alphabetically
-    genres = sorted(list(Movie.objects.values_list('genre', flat=True).distinct()))
+    # Genres list
+    genres = sorted(Movie.objects.values_list('genre', flat=True).distinct())
 
-    # Paginate the movies: 10 per page
-    paginator = Paginator(movies, 10)
+    # Paginate: 4 per page for a 2×2 grid
+    paginator = Paginator(movies, 4)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    context = {
-        'movies': page_obj,         # Paginated movies
-        'genres': genres,           # Dynamic list of genres
+    return render(request, 'familyview_project/movie_list.html', {
+        'movies': page_obj,
+        'genres': genres,
         'query': query,
         'selected_genre': selected_genre,
         'selected_age': age_rating,
         'sort': sort_option,
         'page_obj': page_obj,
-    }
-    return render(request, 'familyview_project/movie_list.html', context)
+    })
 
 
 @login_required
@@ -143,10 +160,10 @@ def watchlist(request):
 
 @login_required
 def create_child(request):
-    """Allow a parent to create a child account.
-       Prevent child users from accessing this page.
     """
-    # If the current user already has a child_profile, they are a child; block access.
+    Allow a parent to create a child account.
+    Links the child to the current user as parent.
+    """
     if hasattr(request.user, 'child_profile'):
         messages.error(request, "Child accounts cannot create another child account.")
         return redirect('movie_list')
@@ -155,172 +172,167 @@ def create_child(request):
         child_username = request.POST['child_username']
         child_password = request.POST['child_password']
         max_rating = request.POST['max_age_rating']
+
+        if not is_strong_password(child_password):
+            messages.error(request,
+                           "Child password must be at least 8 characters long and include at least one number.")
+            return redirect('create_child')
+
         child_user = User.objects.create_user(username=child_username, password=child_password)
-        # Create a child profile for the new user
-        ChildAccount.objects.create(user=child_user, max_age_rating=max_rating)
+        ChildAccount.objects.create(
+            user=child_user,
+            parent=request.user,
+            max_age_rating=max_rating
+        )
         messages.success(request, f'Child account {child_username} created.')
         return redirect('movie_list')
+
     return render(request, 'familyview_project/create_child.html')
 
 
 @login_required
 def edit_child(request, child_id):
-    """Allow a parent to update a child's max age rating."""
-    child_user = get_object_or_404(User, id=child_id)
-    if not hasattr(child_user, 'child_profile'):
-        messages.error(request, "This is not a child account.")
-        return redirect('movie_list')
+    """
+    Allow a parent to edit their child's max age rating.
+    Only the parent who created the child may edit.
+    """
+    profile = get_object_or_404(ChildAccount, id=child_id, parent=request.user)
+
     if request.method == 'POST':
-        max_rating = request.POST['max_age_rating']
-        child_user.child_profile.max_age_rating = max_rating
-        child_user.child_profile.save()
-        messages.success(request, f'Child account {child_user.username} updated.')
+        new_rating = request.POST.get('max_age_rating')
+        if new_rating in ["U", "PG", "12"]:
+            profile.max_age_rating = new_rating
+            profile.save()
+            messages.success(request, f"{profile.user.username}'s age rating updated to {new_rating}.")
+        else:
+            messages.error(request, "Invalid rating selected.")
         return redirect('movie_list')
+
     return render(request, 'familyview_project/edit_child.html', {
-        'child_user': child_user,
-        'current_rating': child_user.child_profile.max_age_rating
+        'child_profile': profile
     })
 
 
 @login_required
 def recommendations(request):
     """
-    Provide movie recommendations based on the user's watchlist and diary likes.
-    Limit the final list to a maximum of 10 movies.
+    Provide movie recommendations based on watchlist + diary.
+    Supports shuffle via '?shuffle=1'.
     """
-    # Retrieve watchlist items and diary entries (thumbs up) for the user
     watchlist_items = WatchlistItem.objects.filter(user=request.user)
-    diary_likes = DiaryEntry.objects.filter(user=request.user, thumbs_up=True)
+    diary_likes      = DiaryEntry.objects.filter(user=request.user, thumbs_up=True)
 
-    # If neither exists, show a message
     if not watchlist_items.exists() and not diary_likes.exists():
         messages.info(request, "Add movies to your watchlist or diary to get recommendations!")
         return render(request, 'familyview_project/recommendations.html', {'recommendations': None})
 
-    # Combine genres from watchlist + diary likes
-    watchlist_genres = [item.movie.genre for item in watchlist_items]
-    diary_genres = [entry.movie.genre for entry in diary_likes]
-    combined_genres = watchlist_genres + diary_genres
-
     # Determine top genres
-    genre_counts = Counter(combined_genres)
-    top_genres = [genre for genre, count in genre_counts.most_common(2)]
+    genres = [w.movie.genre for w in watchlist_items] + [d.movie.genre for d in diary_likes]
+    top_two = [g for g, _ in Counter(genres).most_common(2)]
 
-    # Exclude movies already in watchlist
-    watchlist_ids = [item.movie.id for item in watchlist_items]
-    recommended_qs = Movie.objects.filter(genre__in=top_genres).exclude(id__in=watchlist_ids)
+    # Exclude seen
+    exclude_ids = [w.movie.id for w in watchlist_items]
+    qs = Movie.objects.filter(genre__in=top_two).exclude(id__in=exclude_ids)
 
     # Child filtering
     if hasattr(request.user, 'child_profile'):
-        max_rating = request.user.child_profile.max_age_rating
-        if max_rating == "U":
-            recommended_qs = recommended_qs.filter(age_rating__in=["U"])
-        elif max_rating == "PG":
-            recommended_qs = recommended_qs.filter(age_rating__in=["U", "PG"])
-        elif max_rating == "12":
-            recommended_qs = recommended_qs.filter(age_rating__in=["U", "PG", "12"])
+        max_r = request.user.child_profile.max_age_rating
+        allowed = (
+            ["U"] if max_r == "U" else
+            ["U", "PG"] if max_r == "PG" else
+            ["U", "PG", "12"]
+        )
+        qs = qs.filter(age_rating__in=allowed)
 
-    # If nothing to recommend
-    if not recommended_qs.exists():
+    if not qs.exists():
         messages.warning(request, "No recommendations found based on your preferences.")
         return render(request, 'familyview_project/recommendations.html', {'recommendations': None})
 
-    # Limit to a maximum of 10 recommended movies
-    recommended_qs = recommended_qs[:10]
-
-    # Build the recommendation list
+    # Build recommendation list
     recommendations = []
-    for movie in recommended_qs:
+    for movie in qs[:10]:
         reasons = []
-        # Check watchlist reason
-        watchlist_reason_item = watchlist_items.filter(movie__genre=movie.genre).first()
-        if watchlist_reason_item:
-            reasons.append(f"you added {watchlist_reason_item.movie.title} to your watchlist")
-        # Check diary reason
-        diary_reason_item = diary_likes.filter(movie__genre=movie.genre).first()
-        if diary_reason_item:
-            reasons.append(f"you liked {diary_reason_item.movie.title} in your diary")
-
+        wi = watchlist_items.filter(movie__genre=movie.genre).first()
+        if wi:
+            reasons.append(f"you added {wi.movie.title} to your watchlist")
+        dl = diary_likes.filter(movie__genre=movie.genre).first()
+        if dl:
+            reasons.append(f"you liked {dl.movie.title} in your diary")
         reason_text = "Because " + " and ".join(reasons) if reasons else ""
-        recommendations.append({
-            'movie': movie,
-            'reason': reason_text,
-        })
+        recommendations.append({'movie': movie, 'reason': reason_text})
 
-    return render(request, 'familyview_project/recommendations.html', {'recommendations': recommendations})
+    # Shuffle if requested
+    if request.GET.get('shuffle') == '1':
+        random.shuffle(recommendations)
+
+    return render(request, 'familyview_project/recommendations.html', {
+        'recommendations': recommendations
+    })
 
 
 @login_required
 def diary(request):
-    # For child users, restrict the movies they can choose from
+    """Log and view diary entries."""
     all_movies = Movie.objects.all()
-    if request.user.is_authenticated and hasattr(request.user, 'child_profile'):
-        max_rating = request.user.child_profile.max_age_rating
-        if max_rating == "U":
-            all_movies = all_movies.filter(age_rating="U")
-        elif max_rating == "PG":
-            all_movies = all_movies.filter(age_rating__in=["U", "PG"])
-        elif max_rating == "12":
-            all_movies = all_movies.filter(age_rating__in=["U", "PG", "12"])
+    if hasattr(request.user, 'child_profile'):
+        max_r = request.user.child_profile.max_age_rating
+        allowed = (
+            ["U"] if max_r == "U" else
+            ["U", "PG"] if max_r == "PG" else
+            ["U", "PG", "12"]
+        )
+        all_movies = all_movies.filter(age_rating__in=allowed)
 
     if request.method == 'POST':
         movie_id = request.POST['movie_id']
-        watched_on_str = request.POST['watched_on']
-
-        # Convert the input string to a date object
+        watched_str = request.POST['watched_on']
         try:
-            watched_on_date = datetime.strptime(watched_on_str, '%Y-%m-%d').date()
+            watched_on = datetime.strptime(watched_str, '%Y-%m-%d').date()
         except ValueError:
-            messages.error(request, "Invalid date format. Please use YYYY-MM-DD.")
+            messages.error(request, "Invalid date format. Use YYYY-MM-DD.")
             return redirect('diary')
 
-        # Check if the selected date is in the future
-        if watched_on_date > date.today():
-            messages.error(request, "You cannot log a diary entry for a future date.")
+        if watched_on > date.today():
+            messages.error(request, "You cannot log a future date.")
             return redirect('diary')
 
         movie = get_object_or_404(Movie, id=movie_id)
-
-        # Additional check: if the user is a child, ensure the movie's age rating is allowed
-        if hasattr(request.user, 'child_profile'):
-            max_rating = request.user.child_profile.max_age_rating
-            allowed_ratings = (["U"] if max_rating == "U" else
-                               ["U", "PG"] if max_rating == "PG" else
-                               ["U", "PG", "12"])
-            if movie.age_rating not in allowed_ratings:
-                messages.error(request, "This movie is not allowed for your age.")
-                return redirect('diary')
+        if hasattr(request.user, 'child_profile') and movie.age_rating not in allowed:
+            messages.error(request, "This movie is not allowed for your age.")
+            return redirect('diary')
 
         thumbs_up = request.POST.get('thumbs_up') == 'on'
         DiaryEntry.objects.create(
             user=request.user,
             movie=movie,
-            watched_on=watched_on_date,
+            watched_on=watched_on,
             thumbs_up=thumbs_up
         )
         messages.success(request, 'Diary entry added.')
         return redirect('diary')
 
     entries = DiaryEntry.objects.filter(user=request.user)
-    return render(request, 'familyview_project/diary.html', {'entries': entries, 'movies': all_movies})
+    return render(request, 'familyview_project/diary.html', {
+        'entries': entries,
+        'movies': all_movies
+    })
 
 
 @login_required
 def remove_from_watchlist(request, movie_id):
     """Remove a movie from the user's watchlist."""
-    movie = get_object_or_404(Movie, id=movie_id)
-    item = WatchlistItem.objects.filter(user=request.user, movie=movie).first()
+    item = WatchlistItem.objects.filter(user=request.user, movie__id=movie_id).first()
     if item:
         item.delete()
-        messages.success(request, f'{movie.title} removed from your watchlist.')
+        messages.success(request, f'{item.movie.title} removed from your watchlist.')
     else:
-        messages.info(request, f'{movie.title} is not in your watchlist.')
+        messages.info(request, 'That movie was not in your watchlist.')
     return redirect('watchlist')
 
 
 @login_required
 def remove_diary_entry(request, entry_id):
-    """Remove a diary entry for the logged-in user."""
+    """Remove a diary entry."""
     entry = get_object_or_404(DiaryEntry, id=entry_id, user=request.user)
     entry.delete()
     messages.success(request, 'Diary entry removed.')
@@ -329,36 +341,25 @@ def remove_diary_entry(request, entry_id):
 
 @login_required
 def admin_dashboard(request):
-    """
-    Temporary admin dashboard that shows a list of all registered users,
-    their account type, and options to edit or remove them.
-    Only accessible to superusers.
-    """
+    """List all users for superuser editing/removal."""
     if not request.user.is_superuser:
         messages.error(request, "You are not authorized to view this page.")
         return redirect('home')
 
-    # Retrieve all users
     users = User.objects.all().order_by('username')
     return render(request, 'familyview_project/admin_dashboard.html', {'users': users})
 
 
 @login_required
 def edit_user(request, user_id):
-    """
-    Allow an admin to update a user's email address.
-    Only accessible to superusers.
-    """
+    """Allow superusers to edit a user's email."""
     if not request.user.is_superuser:
         messages.error(request, "You are not authorized to view this page.")
         return redirect('home')
 
     user_to_edit = get_object_or_404(User, id=user_id)
-
     if request.method == 'POST':
-        # For simplicity, we're only editing the email here.
-        new_email = request.POST.get('email', '')
-        user_to_edit.email = new_email
+        user_to_edit.email = request.POST.get('email', '')
         user_to_edit.save()
         messages.success(request, "User updated successfully.")
         return redirect('admin_dashboard')
@@ -368,21 +369,33 @@ def edit_user(request, user_id):
 
 @login_required
 def remove_user(request, user_id):
-    """
-    Allow an admin to remove a user.
-    Prevent admins from removing their own account.
-    Only accessible to superusers.
-    """
+    """Allow superusers to remove a user (not themselves)."""
     if not request.user.is_superuser:
         messages.error(request, "You are not authorized to perform this action.")
         return redirect('home')
 
-    user_to_remove = get_object_or_404(User, id=user_id)
-
-    if user_to_remove == request.user:
+    target = get_object_or_404(User, id=user_id)
+    if target == request.user:
         messages.error(request, "You cannot remove your own account.")
         return redirect('admin_dashboard')
 
-    user_to_remove.delete()
+    target.delete()
     messages.success(request, "User removed successfully.")
     return redirect('admin_dashboard')
+
+
+@login_required
+def submit_request(request):
+    """Let any user submit an admin request."""
+    if request.method == 'POST':
+        form = AdminRequestForm(request.POST)
+        if form.is_valid():
+            req = form.save(commit=False)
+            req.user = request.user
+            req.save()
+            messages.success(request, "Your request has been submitted to the admins.")
+            return redirect('movie_list')
+    else:
+        form = AdminRequestForm()
+
+    return render(request, 'familyview_project/submit_request.html', {'form': form})

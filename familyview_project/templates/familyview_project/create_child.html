@@ -5,7 +5,9 @@
 <form method="post" class="form-group">
     {% csrf_token %}
     <input type="text" class="form-control mb-2" name="child_username" placeholder="Child Username" required>
-    <input type="password" class="form-control mb-2" name="child_password" placeholder="Password" required>
+    <input type="password" name="child_password" class="form-control" placeholder="Password" required
+       pattern="(?=.*\d).{8,}"
+       title="Password must be at least 8 characters long and include at least one number.">
     <select class="form-select mb-2" name="max_age_rating">
         <option value="U">U</option>
         <option value="PG">PG</option>

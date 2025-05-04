@@ -39,5 +39,7 @@ urlpatterns = [
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('edit_user/<int:user_id>/', views.edit_user, name='edit_user'),
     path('remove_user/<int:user_id>/', views.remove_user, name='remove_user'),
+    path('submit_request/', views.submit_request, name='submit_request'),
+
 
 ]
